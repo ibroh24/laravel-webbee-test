@@ -11,18 +11,19 @@ use Illuminate\Support\Facades\Date;
 
 class EventsController extends BaseController
 {
-    public function getWarmupEvents() {
+    public function getWarmupEvents()
+    {
         return Event::all();
     }
 
-    /* TODO: complete getEventsWithWorkshops so that it returns all events including the workshops
+    /*
      Requirements:
     - maximum 2 sql queries
-    - Don't post process query result in PHP
     - verify your solution with `php artisan test`
     - do a `git commit && git push` after you are done or when the time limit is over
 
     Hints:
+    - open the `app/Http/Controllers/EventsController` file
     - partial or not working answers also get graded so make sure you commit what you have
 
     Sample response on GET /events:
@@ -100,21 +101,23 @@ class EventsController extends BaseController
     ]
      */
 
-    public function getEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 1');
+    public function getEventsWithWorkshops()
+    {
+        return Event::with('workshops')->get();
     }
 
 
-    /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
+    /*
     Requirements:
     - only events that have not yet started should be included
     - the event starting time is determined by the first workshop of the event
     - the eloquent expressions should result in maximum 3 SQL queries, no matter the amount of events
-    - Don't post process query result in PHP
+    - all filtering of records should happen in the database
     - verify your solution with `php artisan test`
     - do a `git commit && git push` after you are done or when the time limit is over
 
     Hints:
+    - open the `app/Http/Controllers/EventsController` file
     - partial or not working answers also get graded so make sure you commit what you have
     - join, whereIn, min, groupBy, havingRaw might be helpful
     - in the sample data set  the event with id 1 is already in the past and should therefore be excluded
@@ -178,7 +181,17 @@ class EventsController extends BaseController
     ```
      */
 
-    public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+    public function getFutureEventsWithWorkshops()
+    {
+        return Event::with('workshops')
+            ->whereHas(
+                'workshops',
+                fn ($workshop) => $workshop->where(
+                    'start',
+                    '>',
+                    now()
+                )
+            )
+            ->get();
     }
 }

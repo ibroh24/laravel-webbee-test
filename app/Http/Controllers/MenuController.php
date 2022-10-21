@@ -4,19 +4,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
+use Illuminate\Support\Collection;
 use Illuminate\Routing\Controller as BaseController;
 
 class MenuController extends BaseController
 {
-    /* TODO: complete getMenuItems so that it returns a nested menu structure from the database
+    /*
     Requirements
     - the eloquent expressions should result in EXACTLY one SQL query no matter the nesting level or the amount of menu items.
-    - post process your results in PHP
     - it should work for infinite level of depth (children of childrens children of childrens children, ...)
     - verify your solution with `php artisan test`
     - do a `git commit && git push` after you are done or when the time limit is over
 
     Hints:
+    - open the `app/Http/Controllers/MenuController` file
+    - php post processing of the query results is needed
     - imagine a maximum of a few hundred menu items
     - partial or not working answers also get graded so make sure you commit what you have
 
@@ -92,7 +94,49 @@ class MenuController extends BaseController
     ]
      */
 
-    public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+    public function getMenuItems(): Collection
+    {
+        $items = MenuItem::all()->groupBy('parent_id');
+
+        $parentItems = $items->first();
+
+        $itemsWithChildren = collect([]);
+
+        foreach ($parentItems as $key => $parentItem) {
+            $itemWithChildren = $this->constructItemWithChildren(
+                $items,
+                $parentItem,
+                $this->getItemChildren($items, $parentItem->id)
+            );
+
+            $itemsWithChildren->push($itemWithChildren);
+        }
+
+        return $itemsWithChildren;
+    }
+
+    private function constructItemWithChildren(
+        Collection $items,
+        MenuItem $parentItem,
+        Collection $children
+    ): MenuItem {
+        foreach ($children as $key => $child) {
+            $this->constructItemWithChildren(
+                $items,
+                $child,
+                $this->getItemChildren($items, $child->id)
+            );
+        }
+
+        $parentItem->children = $children;
+
+        return $parentItem;
+    }
+
+    private function getItemChildren(Collection $items, int $parentId): Collection
+    {
+        $children = $items->get($parentId);
+
+        return $children ? $children : collect();
     }
 }
