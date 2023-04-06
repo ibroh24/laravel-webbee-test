@@ -101,6 +101,7 @@ class EventsController extends BaseController
     ]
      */
 
+     
     public function getEventsWithWorkshops()
     {
         return Event::with('workshops')->get();

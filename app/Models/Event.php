@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
+  
   public function workshops(): HasMany
   {
     return $this->hasMany(Workshop::class);
